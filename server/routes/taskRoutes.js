@@ -81,7 +81,32 @@ Update Task
 PUT /api/tasks/:id
 =====================================
 */
-router.put("/:id", updateTask);
+router.put(
+  "/:id",
+  [
+    body("title")
+      .optional()
+      .trim()
+      .isLength({ min: 1, max: 100 })
+      .withMessage("Task title must be between 1 and 100 characters"),
+
+    body("description")
+      .optional()
+      .isLength({ max: 500 })
+      .withMessage("Description cannot exceed 500 characters"),
+
+    body("status")
+      .optional()
+      .isIn(["Pending", "In Progress", "Completed"])
+      .withMessage("Invalid status"),
+
+    body("priority")
+      .optional()
+      .isIn(["Low", "Medium", "High"])
+      .withMessage("Invalid priority"),
+  ],
+  updateTask
+);
 
 /*
 =====================================

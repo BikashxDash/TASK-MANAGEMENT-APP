@@ -23,7 +23,6 @@ const registerUser = async (req, res, next) => {
 
     const { name, email, password } = req.body;
 
-    // Check if email already exists
     const existingUser = await User.findOne({
       email,
     });
@@ -35,7 +34,6 @@ const registerUser = async (req, res, next) => {
       });
     }
 
-    // Hash password
     const salt = await bcrypt.genSalt(10);
 
     const hashedPassword = await bcrypt.hash(
@@ -43,7 +41,6 @@ const registerUser = async (req, res, next) => {
       salt
     );
 
-    // Create user
     const user = await User.create({
       name,
       email,
@@ -86,8 +83,9 @@ const loginUser = async (req, res, next) => {
 
     const { email, password } = req.body;
 
-    // Find user
-    const user = await User.findOne({ email });
+    const user = await User.findOne({
+      email,
+    });
 
     if (!user) {
       return res.status(401).json({
@@ -96,7 +94,6 @@ const loginUser = async (req, res, next) => {
       });
     }
 
-    // Compare password
     const isMatch = await bcrypt.compare(
       password,
       user.password
@@ -119,8 +116,7 @@ const loginUser = async (req, res, next) => {
         email: user.email,
       },
     });
-
-  } catch (error) {
+    } catch (error) {
     next(error);
   }
 };
@@ -134,10 +130,22 @@ GET /api/auth/me
 
 const getCurrentUser = async (req, res, next) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
     res.status(200).json({
       success: true,
-      user: req.user,
+      user: {
+        id: req.user._id,
+        name: req.user.name,
+        email: req.user.email,
+      },
     });
+
   } catch (error) {
     next(error);
   }
